@@ -94,6 +94,51 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
+  function handleInputMovieSearch() {
+    const controller = new AbortController();
+
+    async function fetchMovies() {
+      try {
+        setIsLoading(true);
+        setError("");
+
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies!");
+
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("Movie not found");
+
+        setMovies(data.Search);
+        setError("");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.log(err.message);
+          setError(err.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (!query.length) {
+      setMovies([]);
+      setError("");
+      return;
+    }
+
+    handleCloseMovie();
+    fetchMovies();
+
+    return function () {
+      controller.abort();
+    };
+  }
+
   useEffect(
     function () {
       const controller = new AbortController();
@@ -145,7 +190,11 @@ export default function App() {
   return (
     <>
       <NavBar>
-        <Search query={query} setQuery={setQuery} />
+        <Search
+          query={query}
+          setQuery={setQuery}
+          onInputMovieSearch={handleInputMovieSearch}
+        />
         <NumResults movies={movies} />
       </NavBar>
       <Main>
@@ -219,14 +268,17 @@ function NumResults({ movies }) {
   );
 }
 
-function Search({ query, setQuery }) {
+function Search({ query, setQuery, onInputMovieSearch }) {
   return (
     <input
       className="search"
       type="text"
       placeholder="Search movies..."
       value={query}
-      onChange={(e) => setQuery(e.target.value)}
+      onChange={(e) => {
+        setQuery(e.target.value);
+        onInputMovieSearch();
+      }}
     />
   );
 }
