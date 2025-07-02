@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 
 const average = (arr) =>
@@ -16,7 +16,7 @@ export default function App() {
   // const [watched, setWatched] = useState([]);
   const [watched, setWatched] = useState(function () {
     const storedValue = localStorage.getItem("watched");
-    return storedValue ? JSON.parse(storedValue) : [];
+    return JSON.parse(storedValue);
   });
 
   function handleSelectMovie(id) {
@@ -219,6 +219,31 @@ function NumResults({ movies }) {
 }
 
 function Search({ query, setQuery, onInputMovieSearch }) {
+  const inputEl = useRef(null);
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (document.activeElement === inputEl.current) return;
+
+        if (e.code === "Enter") {
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+
+      document.addEventListener("keydown", callback);
+      return () => document.addEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
+
+  /* useEffect(function () {
+    const el = document.querySelector(".search");
+    console.log(el);
+    el.focus();
+  }, []); */
+
   return (
     <input
       className="search"
@@ -229,6 +254,7 @@ function Search({ query, setQuery, onInputMovieSearch }) {
         setQuery(e.target.value);
         onInputMovieSearch();
       }}
+      ref={inputEl}
     />
   );
 }
