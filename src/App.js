@@ -10,11 +10,7 @@ const KEY = "7ce41dfb";
 export default function App() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-<<<<<<< HEAD
   const { movies, isLoading, error } = useMovies(query);
-=======
-  const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
->>>>>>> 3cdc42e836f1e0a40068d18a668e4e5c594f4152
 
   // const [watched, setWatched] = useState([]);
   const [watched, setWatched] = useState(function () {

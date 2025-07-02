@@ -2,22 +2,14 @@ import { useState, useEffect } from "react";
 
 const KEY = "f84fc31d";
 
-<<<<<<< HEAD
 export function useMovies(query) {
-=======
-export function useMovies(query, callback) {
->>>>>>> 3cdc42e836f1e0a40068d18a668e4e5c594f4152
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(
     function () {
-<<<<<<< HEAD
       //   callback?.();
-=======
-      callback?.();
->>>>>>> 3cdc42e836f1e0a40068d18a668e4e5c594f4152
 
       const controller = new AbortController();
 
