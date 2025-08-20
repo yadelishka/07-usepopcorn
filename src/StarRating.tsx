@@ -21,6 +21,16 @@ StarRating.propTypes = {
   onSetRating: PropTypes.func,
 };
 
+interface StarRatingProps {
+  maxRating?: number;
+  color?: string;
+  size?: number;
+  className?: string;
+  messages?: string[];
+  defaultRating?: number;
+  onSetRating: (rating: number) => void;
+}
+
 export default function StarRating({
   maxRating = 5,
   color = "#fcc419",
@@ -29,11 +39,11 @@ export default function StarRating({
   messages = [],
   defaultRating = 0,
   onSetRating,
-}) {
+}: StarRatingProps) {
   const [rating, setRating] = useState(defaultRating);
   const [tempRating, setTempRating] = useState(0);
 
-  function handleRating(rating) {
+  function handleRating(rating: number) {
     setRating(rating);
     onSetRating(rating);
   }
@@ -69,7 +79,16 @@ export default function StarRating({
   );
 }
 
-function Star({ onRate, full, onHoverIn, onHoverOut, color, size }) {
+interface StarProps {
+  onRate: () => void;
+  full: boolean;
+  onHoverIn: () => void;
+  onHoverOut: () => void;
+  color: string;
+  size: number;
+}
+
+function Star({ onRate, full, onHoverIn, onHoverOut, color, size }: StarProps) {
   const starStyle = {
     width: `${size}px`,
     height: `${size}px`,

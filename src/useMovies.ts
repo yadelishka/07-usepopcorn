@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
 
-const KEY = "f84fc31d";
+const KEY = "7ce41dfb";
 
-export function useMovies(query) {
+function isErrorWithMessage(
+  err: unknown
+): err is { message: string; name?: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as any).message === "string"
+  );
+}
+
+export function useMovies(query: string) {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +43,7 @@ export function useMovies(query) {
           setMovies(data.Search);
           setError("");
         } catch (err) {
-          if (err.name !== "AbortError") {
+          if (isErrorWithMessage(err) && err.name !== "AbortError") {
             console.log(err.message);
             setError(err.message);
           }
