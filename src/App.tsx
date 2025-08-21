@@ -4,15 +4,63 @@ import { useKey } from "./useKey";
 import { useLocalStorageState } from "./useLocalStorageState";
 import { useMovies } from "./useMovies";
 
-interface WatchedMovie {
-  imdbID: string;
+export interface Movie {
   title: string;
   year: string;
   poster: string;
-  imdbRating: number;
-  runtime: number;
+  imdbID: string;
+  imdbRating?: number;
+  runtime?: string;
+  plot?: string;
+  released?: string;
+  actors?: string;
+  director?: string;
+  genre?: string;
+}
+
+interface WatchedMovie extends Movie {
   userRating: number;
   countRatingDecisions: number;
+}
+
+export function mapMovies(data: unknown): Movie[] {
+  console.log(data);
+  if (typeof data == "object" && data && Array.isArray(data))
+    return data.map((movieFromServer) => {
+      const movie: Movie = {
+        title: "",
+        year: "",
+        poster: "",
+        imdbID: "",
+      };
+      if (
+        "Title" in movieFromServer &&
+        typeof movieFromServer.Title === "string"
+      ) {
+        movie.title = movieFromServer.Title;
+      }
+      if (
+        "Year" in movieFromServer &&
+        typeof movieFromServer.Year === "string"
+      ) {
+        movie.year = movieFromServer.Year;
+      }
+      if (
+        "Poster" in movieFromServer &&
+        typeof movieFromServer.Poster === "string"
+      ) {
+        movie.poster = movieFromServer.Poster;
+      }
+      if (
+        "imdbID" in movieFromServer &&
+        typeof movieFromServer.imdbID === "string"
+      ) {
+        movie.imdbID = movieFromServer.imdbID;
+      }
+      console.log(movie);
+      return movie;
+    });
+  return [];
 }
 
 const average = (arr: number[]) =>
@@ -41,7 +89,7 @@ export default function App() {
 
   function handleDeleteWatched(id: string) {
     setWatched((watched: WatchedMovie[]) =>
-      watched.filter((movie: WatchedMovie) => movie.imdbID !== id)
+      watched.filter((movie) => movie.imdbID !== id)
     );
   }
 
@@ -49,7 +97,7 @@ export default function App() {
     <>
       <NavBar>
         <Search query={query} setQuery={setQuery} />
-        <NumResults movies={movies} />
+        <NumResults moviesCount={movies.length} />
       </NavBar>
 
       <Main>
@@ -142,10 +190,10 @@ function Search({
   );
 }
 
-function NumResults({ movies }: { movies: WatchedMovie[] }) {
+function NumResults({ moviesCount }: { moviesCount: number }) {
   return (
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{moviesCount}</strong> results
     </p>
   );
 }
@@ -193,25 +241,11 @@ function WatchedBox() {
 }
 */
 
-type MovieType = {
-  imdbID: string;
-  Title: string;
-  Year: string;
-  Poster: string;
-  Runtime?: string;
-  imdbRating?: string;
-  Plot?: string;
-  Released?: string;
-  Actors?: string;
-  Director?: string;
-  Genre?: string;
-};
-
 function MovieList({
   movies,
   onSelectMovie,
 }: {
-  movies: MovieType[];
+  movies: Movie[];
   onSelectMovie: (id: string) => void;
 }) {
   return (
@@ -227,17 +261,17 @@ function Movie({
   movie,
   onSelectMovie,
 }: {
-  movie: MovieType;
+  movie: Movie;
   onSelectMovie: (id: string) => void;
 }) {
   return (
     <li onClick={() => onSelectMovie(movie.imdbID)}>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-      <h3>{movie.Title}</h3>
+      <img src={movie.poster} alt={`${movie.title} poster`} />
+      <h3>{movie.title}</h3>
       <div>
         <p>
           <span>🗓</span>
-          <span>{movie.Year}</span>
+          <span>{movie.year}</span>
         </p>
       </div>
     </li>
@@ -257,7 +291,17 @@ function MovieDetails({
   onAddWatched,
   watched,
 }: MovieDetailsProps) {
-  const [movie, setMovie] = useState<Partial<MovieType>>({});
+  const [movie, setMovie] = useState<Movie>({
+    title: "",
+    year: "",
+    poster: "",
+    runtime: "",
+    imdbRating: 0,
+    plot: "",
+    released: "",
+    actors: "",
+    imdbID: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState(0);
 
@@ -276,16 +320,16 @@ function MovieDetails({
   )?.userRating;
 
   const {
-    Title: title,
-    Year: year,
-    Poster: poster,
-    Runtime: runtime,
+    title,
+    year,
+    poster,
+    runtime,
     imdbRating,
-    Plot: plot,
-    Released: released,
-    Actors: actors,
-    Director: director,
-    Genre: genre,
+    plot,
+    released,
+    actors,
+    director,
+    genre,
   } = movie;
 
   // if (imdbRating > 8) return <p>Greatest ever!</p>;
@@ -312,7 +356,7 @@ function MovieDetails({
       year: year ?? "",
       poster: poster ?? "",
       imdbRating: Number(imdbRating),
-      runtime: runtime ? Number(runtime.split(" ").at(0)) : 0,
+      runtime: runtime ? runtime.split(" ").at(0) ?? "0" : "0",
       userRating: Number(userRating),
       countRatingDecisions: countRef.current,
     };
@@ -326,6 +370,27 @@ function MovieDetails({
 
   useKey("Escape", onCloseMovie);
 
+  function mapMovieDetails(data: any): Movie {
+    return {
+      title: typeof data.Title === "string" ? data.Title : "",
+      year: typeof data.Year === "string" ? data.Year : "",
+      poster: typeof data.Poster === "string" ? data.Poster : "",
+      imdbID: typeof data.imdbID === "string" ? data.imdbID : "",
+      imdbRating:
+        typeof data.imdbRating === "string"
+          ? Number(data.imdbRating)
+          : typeof data.imdbRating === "number"
+          ? data.imdbRating
+          : undefined,
+      runtime: typeof data.Runtime === "string" ? data.Runtime : "",
+      plot: typeof data.Plot === "string" ? data.Plot : "",
+      released: typeof data.Released === "string" ? data.Released : "",
+      actors: typeof data.Actors === "string" ? data.Actors : "",
+      director: typeof data.Director === "string" ? data.Director : "",
+      genre: typeof data.Genre === "string" ? data.Genre : "",
+    };
+  }
+
   useEffect(
     function () {
       async function getMovieDetails() {
@@ -334,7 +399,7 @@ function MovieDetails({
           `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
         );
         const data = await res.json();
-        setMovie(data);
+        setMovie(mapMovieDetails(data));
         setIsLoading(false);
       }
       getMovieDetails();
@@ -415,9 +480,27 @@ function MovieDetails({
 }
 
 function WatchedSummary({ watched }: { watched: WatchedMovie[] }) {
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
+  const avgImdbRating = average(
+    watched
+      .map((movie) => movie.imdbRating)
+      .filter((rating): rating is number => typeof rating === "number")
+  );
   const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
+  const avgRuntime = average(
+    watched
+      .map((movie) => {
+        if (typeof movie.runtime === "string") {
+          const num = Number(movie.runtime.match(/\d+/)?.[0]);
+          return isNaN(num) ? 0 : num;
+        }
+        if (typeof movie.runtime === "number") return movie.runtime;
+        return 0;
+      })
+      .filter(
+        (runtime): runtime is number =>
+          typeof runtime === "number" && !isNaN(runtime)
+      )
+  );
 
   return (
     <div className="summary">

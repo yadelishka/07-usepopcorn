@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { mapMovies, Movie } from "./App";
 
 const KEY = "7ce41dfb";
 
@@ -9,12 +10,12 @@ function isErrorWithMessage(
     typeof err === "object" &&
     err !== null &&
     "message" in err &&
-    typeof (err as any).message === "string"
+    typeof err.message === "string"
   );
 }
 
 export function useMovies(query: string) {
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,7 +41,7 @@ export function useMovies(query: string) {
           const data = await res.json();
           if (data.Response === "False") throw new Error("Movie not found");
 
-          setMovies(data.Search);
+          setMovies(mapMovies(data.Search));
           setError("");
         } catch (err) {
           if (isErrorWithMessage(err) && err.name !== "AbortError") {
@@ -53,7 +54,7 @@ export function useMovies(query: string) {
       }
 
       if (query.length < 3) {
-        setMovies([]);
+        setMovies([] as Movie[]);
         setError("");
         return;
       }

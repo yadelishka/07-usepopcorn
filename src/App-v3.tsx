@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
+import { Movie } from "./App";
 
 interface MovieType {
   imdbID: string;
@@ -54,7 +55,7 @@ export default function App() {
     <>
       <NavBar>
         <Search query={query} setQuery={setQuery} />
-        <NumResults movies={movies} />
+        <NumResults moviesLength={movies.length} />
       </NavBar>
       <Main>
         <Box>
@@ -117,10 +118,10 @@ function Logo() {
   );
 }
 
-function NumResults({ movies }: { movies: MovieType[] }) {
+function NumResults({ moviesLength }: { moviesLength: number }) {
   return (
     <p className="num-results">
-      Found <strong>{movies.length}</strong> results
+      Found <strong>{moviesLength}</strong> results
     </p>
   );
 }
@@ -178,33 +179,37 @@ function MovieList({
   movies,
   onSelectMovie,
 }: {
-  movies: MovieType[];
+  movies: Movie[];
   onSelectMovie: (id: string) => void;
 }) {
   return (
     <ul className="list list-movies">
       {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} onSelectMovie={onSelectMovie} />
+        <MovieItem
+          movie={movie}
+          key={movie.imdbID}
+          onSelectMovie={onSelectMovie}
+        />
       ))}
     </ul>
   );
 }
 
-function Movie({
+function MovieItem({
   movie,
   onSelectMovie,
 }: {
-  movie: MovieType;
+  movie: Movie;
   onSelectMovie: (id: string) => void;
 }) {
   return (
     <li key={movie.imdbID} onClick={() => onSelectMovie(movie.imdbID)}>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-      <h3>{movie.Title}</h3>
+      <img src={movie.poster} alt={`${movie.title} poster`} />
+      <h3>{movie.title}</h3>
       <div>
         <p>
           <span>🗓</span>
-          <span>{movie.Year}</span>
+          <span>{movie.year}</span>
         </p>
       </div>
     </li>
